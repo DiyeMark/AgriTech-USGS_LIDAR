@@ -1,0 +1,6 @@
+site_name: AgriTech-USGS_LIDAR
+site_url: https://diyemark.github.io/AgriTech-USGS_LIDAR/
+nav:
+    - Home: index.md
+    - About: about.md
+theme: readthedocs
