@@ -1,3 +1,5 @@
+import pdal
+
 class FetchLidar:
     def __init__(self):
         pass
