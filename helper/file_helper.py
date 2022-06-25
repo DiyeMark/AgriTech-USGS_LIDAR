@@ -39,6 +39,6 @@ def read_point_data(file_name: str):
 
 def write_csv(df: pd.DataFrame, file_name: str):
     try:
-        df.to_csv(file_name)
+        df.to_csv(file_name, index=False)
     except Exception:
         pass
