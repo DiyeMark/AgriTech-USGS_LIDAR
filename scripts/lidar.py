@@ -1,5 +1,4 @@
 from shapely.geometry import Polygon
-
 from scripts.fetch_lidar import FetchLidar
 
 

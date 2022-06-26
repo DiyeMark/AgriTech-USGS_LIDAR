@@ -30,17 +30,19 @@ class Visualization:
         plt.grid('on', zorder=0)
         df.plot(column=column, ax=ax, legend=True, cmap="terrain")
         plt.title(title)
-        plt.xlabel('long')
-        plt.ylabel('lat')
+        plt.xlabel('Longitude')
+        plt.ylabel('Latitude')
         plt.show()
 
     def plot_3d_map(self, data):
         fig, ax = plt.subplots(1, 1, figsize=(12, 10))
         fig.set_size_inches(18.5, 10.5, forward=True)
         ax = plt.axes(projection='3d')
-        ax.scatter(np.array([x[0] for x in data]),
-                   np.array([x[1] for x in data]),
-                   np.array([x[2] for x in data]), s=0.01)
+        x = data.geometry.x
+        y = data.geometry.y
+        z = data.elevation
+        points = np.vstack((x, y, z)).transpose()
+        ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=0.01)
         ax.set_xlabel('Longitude')
         ax.set_ylabel('Latitude')
         plt.show()
