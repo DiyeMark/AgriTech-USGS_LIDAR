@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><link rel="canonical" href="https://example.com/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><link rel="canonical" href="https://diyemark.github.io/AgriTech-USGS_LIDAR/" />
       <link rel="shortcut icon" href="img/favicon.ico" />
     <title>AgriTech-USGS_LIDAR</title>
     <link rel="stylesheet" href="css/theme.css" />
@@ -12,9 +12,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Home";
+        var mkdocs_page_name = "Documentation";
         var mkdocs_page_input_path = "index.md";
-        var mkdocs_page_url = "/";
+        var mkdocs_page_url = "/AgriTech-USGS_LIDAR/";
       </script>
     
     <script src="js/jquery-3.6.0.min.js" defer></script>
@@ -41,17 +41,17 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href=".">Home</a>
+                <li class="toctree-l1 current"><a class="reference internal current" href=".">Documentation</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#commands">Commands</a>
+    <li class="toctree-l2"><a class="reference internal" href="#install">Install</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#project-layout">Project layout</a>
+    <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#lidar">Lidar</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a>
     </li>
     </ul>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="about/">About</a>
                 </li>
               </ul>
       </div>
@@ -67,7 +67,7 @@
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>Home</li>
+    <li><a href="." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>Documentation</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -79,25 +79,103 @@
               
                 <h1 id="agritech-usgs-lidar">AgriTech - USGS LIDAR</h1>
 <p>A Python module that will allow users to quickly handle, convert, sample, and visualize the geographical data from 3DEP.</p>
-<h2 id="commands">Commands</h2>
-<ul>
-<li><code>mkdocs new [dir-name]</code> - Create a new project.</li>
-<li><code>mkdocs serve</code> - Start the live-reloading docs server.</li>
-<li><code>mkdocs build</code> - Build the documentation site.</li>
-<li><code>mkdocs -h</code> - Print help message and exit.</li>
-</ul>
-<h2 id="project-layout">Project layout</h2>
-<pre><code>mkdocs.yml    # The configuration file.
-docs/
-    index.md  # The documentation homepage.
-    ...       # Other markdown pages, images and other files.
+<h2 id="install">Install</h2>
+<pre><code>git clone https://github.com/DiyeMark/AgriTech-USGS_LIDAR
+cd AgriTech-USGS_LIDAR
+pip install -r requirements.txt
+</code></pre>
+<h2 id="usage">Usage</h2>
+<pre><code class="language-python">from lidar import Lidar
+from visualization import Visualization
+from shapely.geometry import Polygon
+
+# initialize lidar
+lidar = Lidar()
+
+# build polygon
+MINX, MINY, MAXX, MAXY = [-93.756155, 41.918015, -93.747334, 41.921429]
+polygon = Polygon(((MINX, MINY), (MINX, MAXY), (MAXX, MAXY), (MAXX, MINY), (MINX, MINY)))
+
+# geopandas dataframe of the polygon region
+geo_df = lidar.fetch_lidar(polygon, [&quot;IA_FullState&quot;])
+
+# geodata of the polygon region
+df = geo_df[0]['geo_data']
+
+# initialize visualization
+vis = Visualization()
+
+# heatmap
+vis.plot_heatmap(df, column='elevation', title='IA_FullState Heatmap')
+
+# 3d plot
+vis.plot_3d_map(df)
+</code></pre>
+<h2 id="lidar">Lidar</h2>
+<pre><code>from shapely.geometry import Polygon
+from scripts.fetch_lidar import FetchLidar
+
+
+class Lidar:
+    def __init__(self):
+        self._fetch_lidar = FetchLidar()
+
+    def fetch_lidar(self, polygon: Polygon, regions=[]):
+        return self._fetch_lidar.fetch_lidar_data(polygon, regions)
+</code></pre>
+<h2 id="visualization">Visualization</h2>
+<pre><code>import numpy as np
+import matplotlib.pyplot as plt
+import rasterio
+from rasterio.plot import show, show_hist
+
+
+class Visualization:
+    def __init__(self):
+        pass
+
+    def plot_raster(self, rast_data, title='', figsize=(10, 10)):
+        plt.figure(figsize=figsize)
+        im1 = plt.imshow(np.log1p(rast_data), )  # vmin=0, vmax=2.1)
+
+        plt.title(&quot;{}&quot;.format(title), fontdict={'fontsize': 20})
+        plt.axis('off')
+        plt.colorbar(im1, fraction=0.03)
+
+    def plot_raster_from_file(self, file):
+        src = rasterio.open(file)
+        fig, (axrgb, axhist) = plt.subplots(1, 2, figsize=(14, 7))
+        show(src, cmap='Greys_r', contour=True, ax=axrgb)
+        show_hist(src, bins=50, histtype='stepfilled',
+                  lw=0.0, stacked=False, alpha=0.3, ax=axhist)
+        plt.show()
+
+    def plot_heatmap(self, df, column, title):
+        fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+        fig.patch.set_alpha(0)
+        plt.grid('on', zorder=0)
+        df.plot(column=column, ax=ax, legend=True, cmap=&quot;terrain&quot;)
+        plt.title(title)
+        plt.xlabel('Longitude')
+        plt.ylabel('Latitude')
+        plt.show()
+
+    def plot_3d_map(self, data):
+        fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+        fig.set_size_inches(18.5, 10.5, forward=True)
+        ax = plt.axes(projection='3d')
+        x = data.geometry.x
+        y = data.geometry.y
+        z = data.elevation
+        points = np.vstack((x, y, z)).transpose()
+        ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=0.01)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        plt.show()
 </code></pre>
               
             </div>
           </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="about/" class="btn btn-neutral float-right" title="About">Next <span class="icon icon-circle-arrow-right"></span></a>
-    </div>
 
   <hr/>
 
@@ -120,8 +198,6 @@ docs/
     
     
     
-      <span><a href="about/" style="color: #fcfcfc">Next &raquo;</a></span>
-    
   </span>
 </div>
     <script>var base_url = '.';</script>
@@ -139,5 +215,5 @@ docs/
 
 <!--
 MkDocs version : 1.3.0
-Build Date UTC : 2022-06-25 07:54:35.168757+00:00
+Build Date UTC : 2022-06-26 23:23:33.113262+00:00
 -->
