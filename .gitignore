@@ -133,3 +133,7 @@ dmypy.json
 
 # MacOS file
 .DS_Store
+
+# Data Folder
+data/laz
+data/tif
